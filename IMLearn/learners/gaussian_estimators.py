@@ -223,20 +223,6 @@ class MultivariateGaussian:
             log-likelihood calculated
         """
         # each row in the X array represents a single sample.
-
-        # cov_inverse = np.linalg.inv(cov)
-        # cov_det = np.linalg.det(cov)
-        # e_power = 0
-        # pi_d = (2 * math.pi) ** X.shape[1]
-        # for x in X:
-        #     x_mu = x - mu
-        #     mat_multiply = x_mu @ cov_inverse @ (x_mu.reshape(x_mu.shape + (1,)))
-        #     e_power += -0.5 * mat_multiply
-        #
-        # return X.shape[0] * math.log(1 / math.sqrt(pi_d * cov_det)) + e_power[0]
-
-
-
         numberOfSamples = X.shape[0]
         sizeOfSingleSample = X.shape[1]
         detCov = np.linalg.det(cov)
