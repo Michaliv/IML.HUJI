@@ -227,14 +227,10 @@ class MultivariateGaussian:
         sizeOfSingleSample = X.shape[1]
         detCov = np.linalg.det(cov)
         inverseCov = np.linalg.inv(cov)
-        # logArg = numberOfSamples * math.log( 1 /
-        #                                      (math.sqrt
-        #                                       ((2*math.pi)**sizeOfSingleSample
-        #                                        *(detCov))),math.e)
-        twoTimesPi = (2 * math.pi) ** sizeOfSingleSample
-        logArg = numberOfSamples * math.log(1 /
-                                            (math.sqrt
-                                             (twoTimesPi * (detCov))), math.e)
+        logArg = numberOfSamples * math.log( 1 /
+                                             (math.sqrt
+                                              ((2*math.pi)**sizeOfSingleSample
+                                               *(detCov))),math.e)
         sum = 0
         for i in range (numberOfSamples):
             xMinusMu = X[i] - mu
