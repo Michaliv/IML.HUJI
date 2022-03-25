@@ -27,7 +27,7 @@ def test_univariate_gaussian():
     # takes the same set of samples as before, and plots the absolute distance
     # between the estimated and true size of expectation:
     arrOfMu = create_arr_of_abs_distances(estimatorObj, arrOfSamples, trueMu)
-    fig = create_figure_of_estimated_excpectation(arrOfMu) # create figure
+    fig = create_figure_of_estimated_excpectation_univariante(arrOfMu) # create figure
     fig.show()
 
 
@@ -53,6 +53,17 @@ def test_multivariate_gaussian():
                         [0.5,0,0,1]])
 
     arrOfSamples = np.random.multivariate_normal(trueMu, trueCov, 1000)
+    multivariante_estimated_excpectation_and_cov(arrOfSamples)
+
+    # Question 5 - Likelihood evaluation
+    maxF1 , maxF3, maxLikelihood = \
+        create_figure_of_estimated_excpectation_multivariante\
+            (trueCov, arrOfSamples)
+
+    # Question 6 - Maximum likelihood
+    print_max_vals(maxF1, maxF3, maxLikelihood)
+
+def multivariante_estimated_excpectation_and_cov(arrOfSamples):
     estimatorObg = MultivariateGaussian()
     estimatorObg.fit(arrOfSamples)
     print("\nEstimated expectation:")
@@ -60,21 +71,26 @@ def test_multivariate_gaussian():
     print("\nEstimated cov:")
     print(estimatorObg.cov_)
 
-    # Question 5 - Likelihood evaluation
+def create_figure_of_estimated_excpectation_multivariante(trueCov, arrOfSamples):
+    """
+    creates the figure of estimated expectation and covariance
+    """
     f1 = np.linspace(-10, 10, 200)
     f3 = np.linspace(-10, 10, 200)
     logLikelihood = []
     logLikelihoodOfSingleSample = []
 
-    maxLikelihood = float('-inf') # initializing max as smallest number
+    maxLikelihood = float('-inf')  # initializing max as smallest number
     # F1 and F3 run between -10 and 10 so will always be bigger than -20:
     maxF1 = -20
     maxF3 = -20
 
+    # for each possible val of F1 and F3, calc the log likelihood and add to
+    # the array:
     for i in range(200):
         for j in range(200):
             currentMu = np.array([f1[i], 0, f3[j], 0])
-            currentLikelihood = MultivariateGaussian().\
+            currentLikelihood = MultivariateGaussian(). \
                 log_likelihood(currentMu, trueCov, arrOfSamples)
             logLikelihoodOfSingleSample.append(currentLikelihood)
             if currentLikelihood > maxLikelihood:
@@ -83,8 +99,13 @@ def test_multivariate_gaussian():
                 maxF3 = f3[j]
         logLikelihood.append(logLikelihoodOfSingleSample)
         logLikelihoodOfSingleSample = []
+    generate_heatmap(f1, f3, logLikelihood)
+    return (maxF1, maxF3, maxLikelihood)
 
-
+def generate_heatmap(f1, f3, logLikelihood):
+    """
+    generates the heatmap of f1 and f3 values
+    """
     fig = go.Figure(data=go.Heatmap(
         z=logLikelihood,
         x=f3,
@@ -99,12 +120,15 @@ def test_multivariate_gaussian():
 
     fig.show()
 
-    # Question 6 - Maximum likelihood
+
+def print_max_vals(maxF1, maxF3, maxLikelihood):
+    """
+    prints the max vals
+    """
     print("\nMax f1 & f3: ")
     print(tuple([round(maxF1,3) , round(maxF3,3)]))
     print("\nMax LogLikelihood: ")
     print(round(maxLikelihood, 3))
-
 
 def create_arr_of_abs_distances(estimatorObj, arrOfSamples, trueMu):
     """
@@ -126,7 +150,7 @@ def create_arr_of_abs_distances(estimatorObj, arrOfSamples, trueMu):
     return arrOfMu
 
 
-def create_figure_of_estimated_excpectation(arrOfMu):
+def create_figure_of_estimated_excpectation_univariante(arrOfMu):
     """
     helper function to test_univariate_gaussian, creates a figure in which the
     x axis represents the size of the sample, and the y axis the abs value
