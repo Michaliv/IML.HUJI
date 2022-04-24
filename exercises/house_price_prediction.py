@@ -42,15 +42,8 @@ def load_data(filename: str):
     houseDataFrame = pd.get_dummies(houseDataFrame, prefix='zipcode',
                                     columns=['zipcode'])
 
+    # add intercept
     houseDataFrame.insert(0, 'intercept', 1, True)
-
-    # the fitted model
-    # lr = LinearRegression()
-    # lr.fit(np.array(houseDataFrame), houseDataFrame['price'])
-    # print(lr.predict(np.array(houseDataFrame)))
-    # print(houseDataFrame['price'])
-
-    # print(houseDataFrame.head(50).to_string())
 
     return houseDataFrame.drop("price", 1), houseDataFrame.price
 
@@ -74,13 +67,17 @@ def remove_invalid_values(houseDataFrame):
         houseDataFrame.drop(houseDataFrame[houseDataFrame[feature] < 0].index,
                             inplace=True)
 
+    # remove invalid values
     houseDataFrame.drop(houseDataFrame[houseDataFrame["bedrooms"] >= 15].index,
                             inplace=True)
-    houseDataFrame.drop(houseDataFrame[houseDataFrame["sqft_living"] >= 12000].index,
+    houseDataFrame.drop(houseDataFrame[houseDataFrame["sqft_living"] >=
+                                       12000].index,
                                          inplace=True)
-    houseDataFrame.drop(houseDataFrame[houseDataFrame["sqft_lot"] >= 1300000].index,
+    houseDataFrame.drop(houseDataFrame[houseDataFrame["sqft_lot"] >=
+                                       1300000].index,
                                          inplace=True)
-    houseDataFrame.drop(houseDataFrame[houseDataFrame["sqft_lot15"] >= 500000].index,
+    houseDataFrame.drop(houseDataFrame[houseDataFrame["sqft_lot15"] >=
+                                       500000].index,
                                          inplace=True)
 
 def add_recently_renewed_feature(houseDataFrame):
@@ -143,6 +140,8 @@ def feature_evaluation(X: pd.DataFrame, y: pd.Series, output_path: str = ".") ->
         Path to folder in which plots are saved
     """
     X = X.iloc[:, 1:] # disclude "intercept" feature
+    zipcodes = [col for col in X if "zipcode" in col]
+    X = X.drop(zipcodes, axis=1)
     for feature in X:
         # cov returns a matrix which the diagonal is var of x and ver of y,
         # and the cov is the non diagonals- so we take [0][1] index:
@@ -152,34 +151,27 @@ def feature_evaluation(X: pd.DataFrame, y: pd.Series, output_path: str = ".") ->
 
         pearCorr = cov / (stdX * stdY)
 
-        # fig = go.Figure()
+        # plot graph:
         df = pd.DataFrame({"Feature Values": X[feature], "Response Values": y})
         fig = px.scatter(df, x= "Feature Values", y="Response Values",
                          trendline="ols", trendline_color_override='darkblue')
-
-        # fig.add_trace(go.Scatter(
-        #     x=X[feature],
-        #     y= y,
-        #     mode="markers"
-        # ))
 
         fig.update_layout(
             title=f"Feature: {feature} <br>Pearson Correlation: {pearCorr}",
             xaxis_title="Feature Values",
             yaxis_title="Response Values"
         )
-        # fig.show()
+
         fig.write_image(output_path + feature + ".png")
 
 
 if __name__ == '__main__':
     np.random.seed(0)
     # Question 1 - Load and preprocessing of housing prices dataset
-    X, y = load_data('C:/Users/Michal/Desktop/school/cs/year2/semesterB/IML/'
-                     'CourseGit/IML.HUJI/datasets/house_prices.csv')
-    #
-    # # Question 2 - Feature evaluation with respect to response
-    # feature_evaluation(X, y)
+    X, y = load_data('house_prices.csv')
+
+    # Question 2 - Feature evaluation with respect to response
+    feature_evaluation(X, y)
     #
     # # Question 3 - Split samples into training- and testing sets.
     trainX, trainY, testX, testY = split_train_test(X,y)
@@ -203,27 +195,32 @@ if __name__ == '__main__':
             sampleSizedP = trainX.sample(n = numOfSamples)
             sampleX, sampleY = sampleSizedP.drop('response', 1), sampleSizedP.response
             lin.fit(sampleX, sampleY)
-            lossMseOf10Samples.append(lin.loss(sampleX, sampleY))
+            lossMseOf10Samples.append(lin.loss(testX, testY))
         lossMseOf10Samples = np.array(lossMseOf10Samples) # create nparray
         meanLossOfAllSamples.append(np.mean(lossMseOf10Samples)) # add to array
         stdLossOfAllSamples.append(np.std(lossMseOf10Samples)) # array of std
 
-    # meanLossOfAllSamples = np.array(meanLossOfAllSamples)
-    # stdLossOfAllSamples = np.array(stdLossOfAllSamples)
-    # meanLossPred, stdLossPred = np.mean(meanLossOfAllSamples, axis=0), np.std(meanLossOfAllSamples, axis=0)
-
-    # mult = [i*2 for i in range(len(stdLossOfAllSamples))]
-    # subtracted = [element1 - element2 for (element1, element2) in zip(meanLossOfAllSamples, mult)]
-    # added = [element1 + element2 for (element1, element2) in zip(meanLossOfAllSamples, mult)]
-
+    # plot the graph
     fig = go.Figure()
-    fig.add_trace(go.Scatter(x=percentages, y=meanLossOfAllSamples, mode="markers+lines", name="Mean Loss", line=dict(dash="dash"),
+    fig.add_trace(go.Scatter(x=percentages, y=meanLossOfAllSamples,
+                             mode="markers+lines", name="Mean Loss", line=dict(dash="dash"),
                 marker=dict(color="green", opacity=.7)))
-    fig.add_trace(go.Scatter(x=percentages, y= np.array(meanLossOfAllSamples) - np.array(stdLossOfAllSamples)*2, fill=None, mode="lines", line=dict(color="lightgrey"),
+    fig.add_trace(go.Scatter(x=percentages, y= np.array(meanLossOfAllSamples) -
+                                               np.array(stdLossOfAllSamples)*2,
+                             fill=None, mode="lines", line=dict(color="lightgrey"),
                                showlegend=False))
-    fig.add_trace(go.Scatter(x=percentages, y= np.array(meanLossOfAllSamples) + np.array(stdLossOfAllSamples)*2, fill='tonexty', mode="lines",
+    fig.add_trace(go.Scatter(x=percentages, y= np.array(meanLossOfAllSamples) +
+                                               np.array(stdLossOfAllSamples)*2,
+                             fill='tonexty', mode="lines",
                              line=dict(color="lightgrey"),
                              showlegend=False))
+
+    fig.update_layout(
+        title="Mean Loss as a function of p- percentage of train set",
+        xaxis_title="Percentage of Train Set",
+        yaxis_title="Mean Loss"
+    )
+
 
     fig.show()
 
