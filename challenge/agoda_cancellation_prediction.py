@@ -31,20 +31,39 @@ def _preprocess(df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.Series]:
 
     # Add dummies instead of hotel id and accommodation_type_name, hotel_city_code,
     # hotel_area_code
-    dummies = pd.get_dummies(df['hotel_id'])
-    df = pd.concat([df, dummies], axis=1)
-    dummies = pd.get_dummies(df['accommadation_type_name'])
-    df = pd.concat([df, dummies], axis=1)
-    dummies = pd.get_dummies(df['hotel_city_code'])
-    df = pd.concat([df, dummies], axis=1)
-    dummies = pd.get_dummies(df['hotel_area_code'])
-    df = pd.concat([df, dummies], axis=1)
+    # dummies = pd.get_dummies(df['hotel_id'])
+    # df = pd.concat([df, dummies], axis=1)
+    # dummies = pd.get_dummies(df['accommadation_type_name'])
+    # df = pd.concat([df, dummies], axis=1)
+    # dummies = pd.get_dummies(df['hotel_city_code'])
+    # df = pd.concat([df, dummies], axis=1)
+    # dummies = pd.get_dummies(df['hotel_area_code'])
+    # df = pd.concat([df, dummies], axis=1)
+
 
     # Cast charge_option feature
     df['charge_option'] = df['charge_option'].replace(
         {'Pay Now': 1, 'Pay Later': 2,
          'Pay at Check-in': 3})
 
+
+
+    accomodation_types = df['accommadation_type_name'].unique()
+    # map_of_types = {}
+    # for ac in range(len(accomodation_types)):
+    #     map_of_types[accomodation_types[ac]] = ac % 12
+    map_of_types = {'Hotel': 10, 'UNKNOWN': 0, 'Boat / Cruise':0, 'Resort' : 10, 'Serviced Apartment' : 8, 'Guest House / Bed & Breakfast': 8,
+                    'Hostel': 10, 'Capsule Hotel': 6, 'Apartment': 7, 'Bungalow': 5, 'Motel':10,
+                    'Ryokan': 3, 'Tent': 3, 'Resort Villa':10, 'Home':0, 'Love Hotel':4, 'Holiday Park / Caravan Park':5,
+                    'Private Villa': 10, 'Inn':4, 'Lodge':3, 'Homestay':4, 'Chalet':5 }
+    df['accommadation_type_name'] = df['accommadation_type_name'].replace(map_of_types)
+
+    # hotel_types = df['hotel_id'].unique()
+    # map_of_hotels = {}
+    # print(len(hotel_types))
+    # for ac in range(len(hotel_types)):
+    #     map_of_hotels[hotel_types[ac]] = ac % 200
+    # df['hotel_id'] = df['hotel_id'].replace(map_of_types)
 
     # Handle dates:
 
@@ -59,6 +78,7 @@ def _preprocess(df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.Series]:
     df['checkin_day_of_year'] = df['checkin_date'].dt.day_of_year
 
     df['checkout_day_of_year'] = df['checkout_date'].dt.day_of_year
+
 
     if 'cancellation_datetime' in df.columns:
         df["cancellation_datetime"] = df["cancellation_datetime"].fillna(0)
@@ -80,13 +100,14 @@ def _preprocess(df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.Series]:
                'h_customer_id', 'customer_nationality',
                'guest_nationality_country_name', 'no_of_adults',
                'no_of_children',
-               'no_of_extra_bed', 'language',
+               'no_of_extra_bed',
                'original_payment_method', 'original_payment_type',
-               'accommadation_type_name', 'hotel_city_code', 'hotel_area_code',
+                'hotel_city_code', 'hotel_area_code',
                'cancellation_policy_code', 'hotel_country_code',
                'origin_country_code', 'original_payment_currency', 'request_nonesmoke',
                'request_latecheckin', 'request_highfloor', 'request_earlycheckin',
-               'request_largebed', 'request_twinbeds', 'request_airport']
+               'request_largebed', 'request_twinbeds', 'request_airport',
+               'language']
 
     to_drop.extend(['booking_datetime', 'checkin_date', 'checkout_date'])
     if 'cancellation_datetime' in df.columns:
@@ -149,22 +170,39 @@ if __name__ == '__main__':
     df, cancellation_labels = load_data(
         '../datasets/agoda_cancellation_train.csv')
 
-    df = df.loc[:, ~df.columns.duplicated(keep='first')]
     train_X, train_y, ignore_X1, ignore_y1 = split_train_test(df,
                                                         cancellation_labels, train_proportion=1)
 
+    week2_test, _ = load_data('../datasets/test_set_week_2.csv')
+    week2_test = week2_test.reindex(columns=train_X.columns, fill_value=0)
+    week2_labels = pd.read_csv('../datasets/test_set_labels_week_2.csv')
+    week2_labels = week2_labels['h_booking_id|label'].str.split(pat='|')
+    week2_labels = np.array(week2_labels.to_list())[:, 1]
+    week2_labels = pd.DataFrame(week2_labels).astype(int)
+
+    # week2_test = week2_test.loc[:,
+    #              ~week2_test.columns.duplicated(keep='first')]
+    # week2_test.reset_index(inplace=True)
+    # week2_test = week2_test.reindex(columns=df.columns, fill_value=0)
+
+
+
+    train_X = train_X.fillna(0).to_numpy()
+    train_y = train_y.fillna(0).to_numpy()
+
     # Fit model over data
-    estimator = AgodaCancellationEstimator().fit(train_X.to_numpy(),
-                                                 train_y.to_numpy())
+    estimator = AgodaCancellationEstimator()
+    estimator.fit(train_X, train_y)
 
 
     # Store model predictions over test set
     df_test_set, cancellation_labels_test_set = load_data("test_set_week_3.csv")
 
-    df_test_set = df_test_set.loc[:,~df_test_set.columns.duplicated(keep='first')]
-    df_test_set.reset_index(inplace=True)
     df_test_set = df_test_set.reindex(columns= df.columns, fill_value=0)
     test_X, test_y, ignore_X2, ignore_y2 = split_train_test(df_test_set, cancellation_labels_test_set, train_proportion=1)
-    test_X = test_X.to_numpy()
+    test_X = test_X.fillna(0).to_numpy()
+
+    print(estimator.loss(week2_test.to_numpy(), week2_labels.to_numpy()))
+
 
     evaluate_and_export(estimator, test_X, "207182452_208586537_318929742.csv")

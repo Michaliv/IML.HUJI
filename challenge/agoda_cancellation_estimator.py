@@ -3,7 +3,8 @@ from typing import NoReturn
 from IMLearn.base import BaseEstimator
 import numpy as np
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import roc_curve, auc
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.metrics import roc_curve, auc, f1_score
 import plotly.graph_objects as go
 
 
@@ -26,6 +27,7 @@ class AgodaCancellationEstimator(BaseEstimator):
         """
         super().__init__()
         self.lg = LogisticRegression(penalty='none')
+        # self.knn = KNeighborsClassifier(5)
 
     def _fit(self, X: np.ndarray, y: np.ndarray) -> NoReturn:
         """
@@ -44,6 +46,7 @@ class AgodaCancellationEstimator(BaseEstimator):
 
         """
         self.lg.fit(X, y)
+        # self.knn.fit(X, y)
 
     def _predict(self, X: np.ndarray) -> np.ndarray:
         """
@@ -60,6 +63,7 @@ class AgodaCancellationEstimator(BaseEstimator):
             Predicted responses of given samples
         """
         return self.lg.predict(X)
+        # return self.knn.predict(X)
 
     def _loss(self, X: np.ndarray, y: np.ndarray) -> float:
         """
@@ -79,6 +83,7 @@ class AgodaCancellationEstimator(BaseEstimator):
             Performance under loss function
         """
         fpr, tpr, thresholds = roc_curve(y, self.predict(X))
+        # return f1_score(y, self.predict(X))
 
         go.Figure(
             data=[go.Scatter(x=[0, 1], y=[0, 1], mode="lines",
@@ -90,5 +95,5 @@ class AgodaCancellationEstimator(BaseEstimator):
             layout=go.Layout(
                 title=rf"$\text{{ROC Curve Of Fitted Model - AUC}}={auc(fpr, tpr):.6f}$",
                 xaxis=dict(title=r"$\text{False Positive Rate (FPR)}$"),
-                yaxis=dict(title=r"$\text{True Positive Rate (TPR)}$")))
+                yaxis=dict(title=r"$\text{True Positive Rate (TPR)}$"))).show()
         return auc(fpr, tpr)
