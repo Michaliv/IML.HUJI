@@ -41,17 +41,15 @@ def _preprocess(df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.Series]:
     # df = pd.concat([df, dummies], axis=1)
 
 
+
     # Cast charge_option feature
     df['charge_option'] = df['charge_option'].replace(
-        {'Pay Now': 1, 'Pay Later': 2,
-         'Pay at Check-in': 3})
+        {'Pay Now': 15, 'Pay Later': 25,
+         'Pay at Check-in': 35})
 
 
 
     accomodation_types = df['accommadation_type_name'].unique()
-    # map_of_types = {}
-    # for ac in range(len(accomodation_types)):
-    #     map_of_types[accomodation_types[ac]] = ac % 12
     map_of_types = {'Hotel': 10, 'UNKNOWN': 0, 'Boat / Cruise':0, 'Resort' : 10, 'Serviced Apartment' : 8, 'Guest House / Bed & Breakfast': 8,
                     'Hostel': 10, 'Capsule Hotel': 6, 'Apartment': 7, 'Bungalow': 5, 'Motel':10,
                     'Ryokan': 3, 'Tent': 3, 'Resort Villa':10, 'Home':0, 'Love Hotel':4, 'Holiday Park / Caravan Park':5,
@@ -60,10 +58,9 @@ def _preprocess(df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.Series]:
 
     # hotel_types = df['hotel_id'].unique()
     # map_of_hotels = {}
-    # print(len(hotel_types))
     # for ac in range(len(hotel_types)):
-    #     map_of_hotels[hotel_types[ac]] = ac % 200
-    # df['hotel_id'] = df['hotel_id'].replace(map_of_types)
+    #     map_of_hotels[hotel_types[ac]] = ac % 134
+    # df['hotel_id'] = df['hotel_id'].replace(map_of_hotels)
 
     # Handle dates:
 
@@ -79,6 +76,16 @@ def _preprocess(df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.Series]:
 
     df['checkout_day_of_year'] = df['checkout_date'].dt.day_of_year
 
+    counts = pd.value_counts(df['cancellation_policy_code'])
+    mask = df['cancellation_policy_code'].isin(
+        counts[counts > counts[10]].index)
+    # dummies = pd.get_dummies(df['cancellation_policy_code'][mask])
+    df['cancellation_policy_code'].iloc[~mask] = '-'
+    dummies = pd.get_dummies(df['cancellation_policy_code'])
+
+    df = pd.concat([df, dummies], axis=1)
+
+
 
     if 'cancellation_datetime' in df.columns:
         df["cancellation_datetime"] = df["cancellation_datetime"].fillna(0)
@@ -91,8 +98,9 @@ def _preprocess(df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.Series]:
     df['booking_year'] = df['booking_year'].replace({2017: 0, 2018: 1})
 
     response = df['cancellation_datetime'] if 'cancellation_datetime' in df.columns else pd.DataFrame([0] * df.shape[0])
-    response = response.astype('int')
+    # response = response.astype('int')
 
+    accomodation_types = df['accommadation_type_name'].unique()
 
     # remove those features:
     to_drop = ["h_booking_id", "hotel_id",
@@ -173,9 +181,9 @@ if __name__ == '__main__':
     train_X, train_y, ignore_X1, ignore_y1 = split_train_test(df,
                                                         cancellation_labels, train_proportion=1)
 
-    week2_test, _ = load_data('../datasets/test_set_week_2.csv')
+    week2_test, _ = load_data('../datasets/test_set_week_3.csv')
     week2_test = week2_test.reindex(columns=train_X.columns, fill_value=0)
-    week2_labels = pd.read_csv('../datasets/test_set_labels_week_2.csv')
+    week2_labels = pd.read_csv('../datasets/test_set_week_3_labels.csv')
     week2_labels = week2_labels['h_booking_id|label'].str.split(pat='|')
     week2_labels = np.array(week2_labels.to_list())[:, 1]
     week2_labels = pd.DataFrame(week2_labels).astype(int)

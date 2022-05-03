@@ -1,9 +1,15 @@
 from __future__ import annotations
 from typing import NoReturn
+
+from sklearn.preprocessing import StandardScaler
+
 from IMLearn.base import BaseEstimator
 import numpy as np
 from sklearn.linear_model import LogisticRegression
 from sklearn.neighbors import KNeighborsClassifier
+from sklearn.naive_bayes import GaussianNB
+from sklearn.pipeline import make_pipeline
+from sklearn.svm import SVC
 from sklearn.metrics import roc_curve, auc, f1_score
 import plotly.graph_objects as go
 
@@ -28,6 +34,8 @@ class AgodaCancellationEstimator(BaseEstimator):
         super().__init__()
         self.lg = LogisticRegression(penalty='none')
         # self.knn = KNeighborsClassifier(5)
+        # self.nb = GaussianNB()
+        # self.cv = make_pipeline(StandardScaler(), SVC(gamma='auto'))
 
     def _fit(self, X: np.ndarray, y: np.ndarray) -> NoReturn:
         """
@@ -47,7 +55,8 @@ class AgodaCancellationEstimator(BaseEstimator):
         """
         self.lg.fit(X, y)
         # self.knn.fit(X, y)
-
+        # self.nb.fit(X,y)
+        # self.cv.fit(X,y)
     def _predict(self, X: np.ndarray) -> np.ndarray:
         """
         Predict responses for given samples using fitted estimator
@@ -64,6 +73,8 @@ class AgodaCancellationEstimator(BaseEstimator):
         """
         return self.lg.predict(X)
         # return self.knn.predict(X)
+        # return self.nb.predict(X)
+        # return self.cv.predict(X)
 
     def _loss(self, X: np.ndarray, y: np.ndarray) -> float:
         """
@@ -83,6 +94,7 @@ class AgodaCancellationEstimator(BaseEstimator):
             Performance under loss function
         """
         fpr, tpr, thresholds = roc_curve(y, self.predict(X))
+        print(f1_score(y, self.predict(X)))
         # return f1_score(y, self.predict(X))
 
         go.Figure(
