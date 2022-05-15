@@ -86,7 +86,7 @@ class AgodaCancellationEstimator(BaseEstimator):
             Test samples
 
         y : ndarray of shape (n_samples, )
-            True labels of test samples
+            True sorted_labels of test samples
 
         Returns
         -------

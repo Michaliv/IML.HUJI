@@ -17,7 +17,7 @@ class GaussianNaiveBayes(BaseEstimator):
         Attributes
         ----------
         self.classes_ : np.ndarray of shape (n_classes,)
-            The different labels classes. To be set in `GaussianNaiveBayes.fit`
+            The different sorted_labels classes. To be set in `GaussianNaiveBayes.fit`
 
         self.mu_ : np.ndarray of shape (n_classes,n_features)
             The estimated features means for each class. To be set in `GaussianNaiveBayes.fit`
@@ -44,7 +44,7 @@ class GaussianNaiveBayes(BaseEstimator):
             Responses of input data to fit to
         """
         self.fitted_ = True
-        # num of classes (=k) is the number of unique labels in y:
+        # num of classes (=k) is the number of unique sorted_labels in y:
         self.classes_ = np.unique(y)
         n_k = []  # count num of yi==k for each k in classes
         for k in self.classes_:
@@ -159,7 +159,7 @@ class GaussianNaiveBayes(BaseEstimator):
             Test samples
 
         y : ndarray of shape (n_samples, )
-            True labels of test samples
+            True sorted_labels of test samples
 
         Returns
         -------
