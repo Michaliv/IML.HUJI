@@ -37,4 +37,25 @@ def cross_validate(estimator: BaseEstimator, X: np.ndarray, y: np.ndarray,
     validation_score: float
         Average validation score over folds
     """
-    raise NotImplementedError()
+    train_score = 0
+    validation_score = 0
+    # separate train set into cv equally sized sets:
+    indexes = np.arange(X.shape[0])
+    folds = np.array_split(indexes, cv)
+    for fold in folds:
+        # train set:
+        boolean_arr = np.ones(X.shape[0], bool)
+        boolean_arr[fold] = False # put false in index matching the test set loc (to be seperated)
+        train_X_without_i = X[boolean_arr] # gets only indexes matching True
+        train_Y_without_i = y[boolean_arr]
+
+        # test set:
+        testX = X[fold]
+        testY = y[fold]
+
+        estimator.fit(train_X_without_i, train_Y_without_i)
+        # estimate error on train set:
+        train_score += scoring(train_Y_without_i, estimator.predict(train_X_without_i))
+        # estimate error on test set:
+        validation_score += scoring(testY, estimator.predict(testX))
+    return float(train_score) / cv, float(validation_score) / cv

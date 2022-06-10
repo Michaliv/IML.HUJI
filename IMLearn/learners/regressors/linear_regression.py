@@ -50,9 +50,10 @@ class LinearRegression(BaseEstimator):
         -----
         Fits model with or without an intercept depending on value of `self.include_intercept_`
         """
-        # if include_intercept is false, need to calc without intercept-
-        # remove 1st col:
-        pseudoInverse = pinv(X) if self.include_intercept_ else pinv(X[:, 1:])
+        if self.include_intercept_:
+            w0 = np.ones([X.shape[0], 1])  # create w0 an column vec with m rows
+            X = np.hstack([w0, X])  # add intercept to X
+        pseudoInverse = pinv(X)
         self.coefs_ = pseudoInverse @ y
 
     def _predict(self, X: np.ndarray) -> np.ndarray:
@@ -69,7 +70,10 @@ class LinearRegression(BaseEstimator):
         responses : ndarray of shape (n_samples, )
             Predicted responses of given samples
         """
-        return X @ self.coefs_
+        if self.include_intercept_:
+            w0 = np.ones([X.shape[0], 1])  # create w0 an column vec with m rows
+            X = np.hstack([w0, X])  # add intercept to X
+        return X.dot(self.coefs_)
 
     def _loss(self, X: np.ndarray, y: np.ndarray) -> float:
         """
