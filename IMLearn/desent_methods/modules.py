@@ -1,6 +1,6 @@
 import numpy as np
 from IMLearn import BaseModule
-
+from numpy import linalg as LA
 
 class L2(BaseModule):
     """
@@ -33,7 +33,7 @@ class L2(BaseModule):
         output: ndarray of shape (1,)
             Value of function at point self.weights
         """
-        raise NotImplementedError()
+        return LA.norm(self.weights)**2
 
     def compute_jacobian(self, **kwargs) -> np.ndarray:
         """
@@ -50,6 +50,7 @@ class L2(BaseModule):
             L2 derivative with respect to self.weights at point self.weights
         """
         raise NotImplementedError()
+    #maybe this: https://math.stackexchange.com/questions/2792390/derivative-of-euclidean-norm-l2-norm
 
 
 class L1(BaseModule):
@@ -78,7 +79,7 @@ class L1(BaseModule):
         output: ndarray of shape (1,)
             Value of function at point self.weights
         """
-        raise NotImplementedError()
+        return LA.norm(self.weights, ord=1)
 
     def compute_jacobian(self, **kwargs) -> np.ndarray:
         """
