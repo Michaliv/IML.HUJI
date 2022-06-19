@@ -4,11 +4,12 @@ import numpy as np
 
 from IMLearn.base import BaseModule, BaseLR
 from .learning_rate import FixedLR
+from numpy import linalg as LA
 
 OUTPUT_VECTOR_TYPE = ["last", "best", "average"]
 
 
-def default_callback(model: GradientDescent, **kwargs) -> NoReturn:
+def default_callback(**kwargs) -> NoReturn:
     pass
 
 
@@ -119,4 +120,58 @@ class GradientDescent:
                 Euclidean norm of w^(t)-w^(t-1)
 
         """
-        raise NotImplementedError()
+        w = f.weights # initial weights (w1)
+
+        # for case average is needed:
+        sum_of_all_ws = np.zeros(f.weights.shape[0])
+        sum_of_all_ws += w
+        actual_num_iters = 0
+
+        best_w = w # w which gives best loss
+        best_obj = f.compute_output(X=X, y=y) # best loss
+
+        for t in range(self.max_iter_):
+            etha = self.learning_rate_.lr_step(t = t)
+            cur_grad = f.compute_jacobian(X=X , y=y)  # cur val of gradient (in cur w vector)
+
+            # compute w_t+1:
+            new_w = w - etha * cur_grad
+            dist_between_ws = LA.norm(w - new_w)
+
+            # initialize parmas for next iteration:
+            w = new_w
+            f.weights = new_w
+
+            # compute current objective (for case in which we need to return best one yet):
+            cur_obj = f.compute_output(X=X, y=y)
+            if cur_obj < best_obj: # got a better loss on this weights
+                best_obj = cur_obj
+                best_w = w
+
+            sum_of_all_ws += w
+            actual_num_iters += 1
+
+            self.callback_(GD=self, jacobian=f.compute_jacobian(X=X, y=y), t=t, eta=etha, norm=dist_between_ws,
+                           weights=f.weights, vals=f.compute_output(X=X, y=y))
+
+            # Training stops when the Euclidean norm of w^(t)-w^(t-1) is less than
+            # specified tolerance:
+            if dist_between_ws < self.tol_:
+                break
+
+        if self.out_type_ == "last":
+            return w # return last w calculated
+        if self.out_type_ == "best":
+            return best_w # return w with smallest loss
+        if self.out_type_ == "average":
+            return sum_of_all_ws / actual_num_iters # return mean of all w's
+        else:
+            return -1
+
+
+
+
+
+
+
+
