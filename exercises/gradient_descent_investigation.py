@@ -121,10 +121,10 @@ def compare_fixed_learning_rates(init: np.ndarray = np.array([np.sqrt(2), np.e /
             best_etha_l2 = etha
 
         fig1 = plot_descent_path(IMLearn.desent_methods.modules.L1, np.array(l1_weights))
-        # fig1.show()
+        fig1.show()
 
         fig2 = plot_descent_path(IMLearn.desent_methods.modules.L2, np.array(l2_weights))
-        # fig2.show()
+        fig2.show()
 
         # Q2
         iters = np.arange(1000)
@@ -135,7 +135,7 @@ def compare_fixed_learning_rates(init: np.ndarray = np.array([np.sqrt(2), np.e /
         fig3.update_layout(title=f"L1 Norm as Function Of Iteration Number for etha: {etha}",
                           xaxis_title="Number of Iteration",
                           yaxis_title="L1 norm")
-        # fig3.show()
+        fig3.show()
 
         fig4 = go.Figure()
         fig4.add_trace(go.Scatter(x=iters, y=l2_vals,
@@ -143,7 +143,7 @@ def compare_fixed_learning_rates(init: np.ndarray = np.array([np.sqrt(2), np.e /
         fig4.update_layout(title=f"L2 Norm as Function Of Iteration Number for etha: {etha}",
                            xaxis_title="Number of Iteration",
                            yaxis_title="L2 norm")
-        # fig4.show()
+        fig4.show()
 
     print(f"best etha for l1: {best_etha_l1}, loss achieved: {best_gd1}")
     print(f"best etha for l2: {best_etha_l2}, loss achieved: {best_gd2}")

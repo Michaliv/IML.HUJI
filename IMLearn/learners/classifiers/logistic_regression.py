@@ -1,7 +1,7 @@
 from typing import NoReturn
 import numpy as np
 from IMLearn import BaseEstimator
-from IMLearn.desent_methods import GradientDescent
+from IMLearn.desent_methods import GradientDescent, FixedLR
 from IMLearn.desent_methods.modules import LogisticModule, RegularizedModule, L1, L2
 from IMLearn.metrics import misclassification_error
 
@@ -35,7 +35,7 @@ class LogisticRegression(BaseEstimator):
 
     def __init__(self,
                  include_intercept: bool = True,
-                 solver: GradientDescent = GradientDescent(max_iter=20000),
+                 solver: GradientDescent = GradientDescent(max_iter=20000, learning_rate= FixedLR(1e-4)),
                  penalty: str = "none",
                  lam: float = 1,
                  alpha: float = .5):
@@ -92,7 +92,7 @@ class LogisticRegression(BaseEstimator):
         if self.include_intercept_:
             X = np.insert(X, 0, 1, axis=1)
         init_weigths = np.random.randn(X.shape[1])
-        init_weigths = init_weigths / np.sqrt(X.shape[1]) # TODO: check?
+        init_weigths = init_weigths / np.sqrt(X.shape[1])
         if self.penalty_ == "none":
             self.coefs_ = self.solver_.fit(LogisticModule(init_weigths), X, y)
 

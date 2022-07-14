@@ -39,7 +39,7 @@ def explore_country_temp_by_days_of_year(X: pd.DataFrame):
     fig = px.scatter(X, x="DayOfYear", y="Temp", color="Year",
                      title="Temperature in Israel by days of the year")
 
-    fig.show()
+    # fig.show()
 
 def explore_country_std_by_month(X: pd.DataFrame):
     """
@@ -53,7 +53,7 @@ def explore_country_std_by_month(X: pd.DataFrame):
         xaxis_title="Months",
         yaxis_title="STD Values"
     )
-    fig.show()
+    # fig.show()
 
 def all_countries_std_and_average_by_month(X: pd.DataFrame):
     """
@@ -69,7 +69,7 @@ def all_countries_std_and_average_by_month(X: pd.DataFrame):
         xaxis_title="Months",
         yaxis_title="Mean Values"
     )
-    fig.show()
+    # fig.show()
 
 def fit_over_k_degree(X: pd.DataFrame, y: pd.Series):
     """
@@ -93,7 +93,7 @@ def fit_over_k_degree(X: pd.DataFrame, y: pd.Series):
         xaxis_title="Degree of polynomial fit",
         yaxis_title="MSE Values",
     )
-    fig.show()
+    # fig.show()
 
 def israel_model_fitting(xIsrael: pd.DataFrame, yIsrael: pd.Series, deg: int, X: pd.DataFrame):
     """
@@ -119,7 +119,7 @@ def israel_model_fitting(xIsrael: pd.DataFrame, yIsrael: pd.Series, deg: int, X:
         xaxis_title="Countries",
         yaxis_title="MSE Values"
     )
-    fig.show()
+    # fig.show()
 
 def test_other_countries(X: pd.DataFrame, polyModel: PolynomialFitting, countryName: str):
     """
